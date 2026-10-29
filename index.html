@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="StudyMate AI - An intelligent, browser-based AI Study Assistant that turns lecture notes into structured summaries, interactive 5-question quizzes, and 3D flashcards.">
+  <title>StudyMate AI | AI Study Assistant Advanced</title>
+  
+  <!-- Google Fonts: Inter & Outfit for clean modern academic typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================================================================= -->
+  <!-- TOP NAVIGATION & HEADER                                           -->
+  <!-- ================================================================= -->
+  <header class="app-header">
+    <div class="header-container">
+      
+      <!-- Logo and App Branding -->
+      <div class="brand-group">
+        <div class="brand-icon-wrapper" aria-hidden="true">
+          <span class="brand-icon">🎓</span>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">StudyMate <span class="gradient-text">AI</span></h1>
+          <p class="brand-tagline">AI-Powered Exam Preparation & Active Recall Assistant</p>
+        </div>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="header-actions">
+        <!-- Settings Toggle Button -->
+        <button id="toggleSettingsBtn" class="btn btn-secondary btn-icon" title="API Key Settings" aria-label="Toggle Gemini API Key Settings">
+          <span class="icon" aria-hidden="true">⚙️</span>
+          <span class="btn-text">API Settings</span>
+        </button>
+
+        <!-- Dark / Light Mode Switcher -->
+        <button id="themeToggleBtn" class="btn btn-secondary btn-icon" title="Toggle Dark/Light Mode" aria-label="Switch between light and dark theme">
+          <span id="themeIcon" class="icon" aria-hidden="true">🌙</span>
+          <span id="themeText" class="btn-text">Dark Mode</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================================================================= -->
+  <!-- MAIN APPLICATION CONTAINER                                        -->
+  <!-- ================================================================= -->
+  <main class="main-container">
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- COLLAPSIBLE API KEY SETTINGS SECTION                          -->
+    <!-- ------------------------------------------------------------- -->
+    <section id="settingsSection" class="settings-card card collapsed" aria-expanded="false" aria-label="Gemini API Key Configuration">
+      <div class="settings-header">
+        <div class="settings-title-group">
+          <span class="badge badge-purple" aria-hidden="true">🔑 Security</span>
+          <h2>Google Gemini API Configuration</h2>
+        </div>
+        <button id="closeSettingsBtn" class="btn-close" aria-label="Close settings">&times;</button>
+      </div>
+
+      <div class="settings-body">
+        <p class="settings-description">
+          Enter your personal Google Gemini API key to enable live AI generation. Your key is stored securely in your browser's <code>localStorage</code> and is <strong>never</strong> transmitted to any server other than Google's official Gemini endpoint.
+        </p>
+
+        <div class="api-key-form">
+          <div class="input-wrapper">
+            <label for="apiKeyInput" class="form-label">Gemini API Key</label>
+            <div class="password-input-group">
+              <input 
+                type="password" 
+                id="apiKeyInput" 
+                class="form-control" 
+                placeholder="Paste AIzaSy... API key here" 
+                autocomplete="off"
+                spellcheck="false"
+              >
+              <button type="button" id="toggleApiKeyVisibilityBtn" class="btn-eye" title="Show or hide API key" aria-label="Toggle API key visibility">
+                👁️
+              </button>
+            </div>
+            <small class="form-hint">
+              Need a key? Get one for free at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio ↗</a>
+            </small>
+            <div class="key-format-tip" style="margin-top: 0.65rem; padding: 0.65rem 0.85rem; border-radius: 8px; background: rgba(99, 102, 241, 0.08); border-left: 3.5px solid var(--primary); font-size: 0.8rem; line-height: 1.45;">
+              <strong>⚠️ Important:</strong> Gemini API keys start with <code>AIzaSy...</code>. Look for the <strong>"Key"</strong> column in Google AI Studio and click "Copy". Do <em>not</em> copy the "Project" name (such as <code>gen-lang-client-...</code>).
+            </div>
+          </div>
+
+          <div class="input-wrapper" style="margin-top: 0.5rem;">
+            <label for="modelSelect" class="form-label">Gemini Model</label>
+            <select id="modelSelect" class="form-control form-select">
+              <option value="gemini-2.5-flash" selected>gemini-2.5-flash (Fast &amp; Recommended)</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash (Alternative)</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash (Legacy)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (In-depth)</option>
+            </select>
+            <small class="form-hint">
+              Automatic fallback: If a model returns 404 for your key, StudyMate AI automatically retries using alternative models.
+            </small>
+          </div>
+
+          <div class="settings-buttons">
+            <button id="saveApiKeyBtn" class="btn btn-primary">
+              <span aria-hidden="true">💾</span> Save Key
+            </button>
+            <button type="button" id="testApiKeyBtn" class="btn btn-secondary" title="Test key validity and list available models">
+              <span aria-hidden="true">⚡</span> Test Key
+            </button>
+            <button id="clearApiKeyBtn" class="btn btn-outline-danger">
+              <span aria-hidden="true">🗑️</span> Remove Key
+            </button>
+          </div>
+        </div>
+
+        <!-- Key Status Indicator Badge -->
+        <div id="keyStatusDisplay" class="key-status-box" role="status">
+          <span class="status-dot status-missing" id="statusDot"></span>
+          <span id="keyStatusText">No API key saved in browser localStorage.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- GLOBAL NOTIFICATION BANNER                                    -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="alertBanner" class="alert-banner hidden" role="alert">
+      <div class="alert-content">
+        <span id="alertIcon" class="alert-icon">⚠️</span>
+        <div class="alert-message-box">
+          <strong id="alertTitle" class="alert-title">Notice</strong>
+          <p id="alertMessage" class="alert-text">Alert message text goes here.</p>
+        </div>
+      </div>
+      <button id="dismissAlertBtn" class="btn-close" aria-label="Dismiss alert">&times;</button>
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- SECTION 1: NOTES & TOPIC INPUT                                -->
+    <!-- ------------------------------------------------------------- -->
+    <section class="card input-card" aria-label="Lecture Notes Input">
+      <div class="card-header">
+        <div class="card-title-group">
+          <span class="step-badge">Step 1</span>
+          <h2>Enter Class Notes or Topic</h2>
+        </div>
+        
+        <!-- Preloaded sample notes button for instant college viva demo -->
+        <div class="sample-actions">
+          <button id="loadSampleNotesBtn" class="btn btn-outline-primary btn-sm" title="Insert ready-to-test sample notes">
+            <span aria-hidden="true">💡</span> Load Sample Notes (OS Concepts)
+          </button>
+          <button id="clearNotesBtn" class="btn btn-ghost btn-sm" title="Clear text field">
+            <span aria-hidden="true">🧹</span> Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- Main Textarea -->
+        <div class="textarea-group">
+          <textarea 
+            id="notesInput" 
+            class="form-control notes-textarea" 
+            placeholder="Paste your raw lecture notes, textbook chapters, or type a syllabus topic here (e.g. 'Operating System Process Synchronization & Semaphores')..."
+            rows="7"
+            aria-label="Notes input area"
+          ></textarea>
+          
+          <!-- Character counter and warning -->
+          <div class="textarea-footer">
+            <span id="charWarning" class="char-warning hidden" role="status">
+              ⚠️ Notes are getting quite long. For best results, keep under 10,000 characters.
+            </span>
+            <span id="charCount" class="char-count">0 / 12,000 characters</span>
+          </div>
+        </div>
+
+        <!-- Customization Controls Grid -->
+        <div class="options-grid">
+          
+          <!-- Explanation Style Selector -->
+          <div class="option-field">
+            <label for="styleSelect" class="form-label">
+              <span aria-hidden="true">🧠</span> Explanation Style
+            </label>
+            <select id="styleSelect" class="form-control form-select">
+              <option value="Explain Like I Am 10">Explain Like I Am 10 (Simple & Intuitive)</option>
+              <option value="Exam-Focused" selected>Exam-Focused (Key Definitions & High-Yield)</option>
+              <option value="Detailed">Detailed (In-Depth Technical Coverage)</option>
+            </select>
+          </div>
+
+          <!-- Quiz Difficulty Selector -->
+          <div class="option-field">
+            <label for="difficultySelect" class="form-label">
+              <span aria-hidden="true">🎯</span> Quiz Difficulty
+            </label>
+            <select id="difficultySelect" class="form-control form-select">
+              <option value="Easy">Easy (Core Definitions & Basics)</option>
+              <option value="Medium" selected>Medium (Conceptual & Application)</option>
+              <option value="Hard">Hard (Analytical & Edge Cases)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="generate-actions">
+          <button id="generateBtn" class="btn btn-primary btn-lg">
+            <span class="btn-icon-wrapper" aria-hidden="true">✨</span>
+            <span id="generateBtnText">Generate Study Material</span>
+          </button>
+          
+          <!-- Instant Offline / Mock Demo Button -->
+          <button id="demoBtn" class="btn btn-outline-purple btn-lg" title="Test all features instantly without API key">
+            <span aria-hidden="true">🧪</span> Try Demo Mode (Instant)
+          </button>
+        </div>
+
+        <!-- Loading State Indicator (Hidden by default) -->
+        <div id="loadingIndicator" class="loading-state hidden" aria-live="polite">
+          <div class="spinner"></div>
+          <div class="loading-info">
+            <h4 id="loadingStepTitle" class="loading-title">Contacting Gemini AI...</h4>
+            <p id="loadingStepDesc" class="loading-desc">Analyzing notes and generating active recall material.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- OUTPUT SECTIONS CONTAINER (Appears after generation)          -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="outputContainer" class="output-container hidden">
+
+      <!-- Navigation tabs for fast switching -->
+      <nav class="output-nav" aria-label="Generated Study Sections">
+        <a href="#summarySection" class="nav-chip active">📝 Summary</a>
+        <a href="#quizSection" class="nav-chip">❓ 5-Question Quiz</a>
+        <a href="#flashcardsSection" class="nav-chip">🗂️ Flashcards</a>
+      </nav>
+
+      <!-- ----------------------------------------------------------- -->
+      <!-- SECTION 2: AI SUMMARY                                       -->
+      <!-- ----------------------------------------------------------- -->
+      <section id="summarySection" class="card output-card" aria-label="Generated Summary">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="badge badge-indigo">Summary</span>
+            <h3 id="summaryTitle">Study Summary</h3>
+          </div>
+
+          <!-- Summary Utility Buttons -->
+          <div class="summary-actions">
+            <!-- Copy Button -->
+            <button id="copySummaryBtn" class="btn btn-secondary btn-sm" title="Copy summary to clipboard">
+              <span id="copyIcon" aria-hidden="true">📋</span>
+              <span id="copyText">Copy</span>
+            </button>
+            
+            <!-- Download .txt Button -->
+            <button id="downloadSummaryBtn" class="btn btn-secondary btn-sm" title="Download summary as a text file">
+              <span aria-hidden="true">📥</span> Download .txt
+            </button>
+            
+            <!-- Read Aloud (SpeechSynthesis) Button -->
+            <button id="readAloudBtn" class="btn btn-secondary btn-sm" title="Read summary aloud using speech synthesis">
+              <span id="speakIcon" aria-hidden="true">🔊</span>
+              <span id="speakText">Read Aloud</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div id="summaryContent" class="summary-text-box">
+            <!-- Populated dynamically by script.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ----------------------------------------------------------- -->
+      <!-- SECTION 3: 5-QUESTION QUIZ                                  -->
+      <!-- ----------------------------------------------------------- -->
+      <section id="quizSection" class="card output-card" aria-label="Interactive Quiz">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="badge badge-purple">Quiz</span>
+            <h3>Interactive Practice Quiz</h3>
+          </div>
+          <span id="quizDifficultyBadge" class="badge badge-neutral">Difficulty: Medium</span>
+        </div>
+
+        <div class="card-body">
+          
+          <!-- Score Result Banner (Hidden until submitted) -->
+          <div id="quizScoreBanner" class="quiz-score-banner hidden" role="region" aria-live="polite">
+            <div class="score-graphic">
+              <span id="scoreEmoji" class="score-emoji">🎉</span>
+            </div>
+            <div class="score-details">
+              <h4 id="scoreTitle" class="score-title">Quiz Completed!</h4>
+              <p id="scoreSummary" class="score-text">You scored <strong>0 / 5 (0%)</strong></p>
+              <p id="scoreFeedback" class="score-subtext">Review the explanations below to reinforce your understanding.</p>
+            </div>
+          </div>
+
+          <!-- Questions Container -->
+          <form id="quizForm" class="quiz-questions-list" onsubmit="return false;">
+            <!-- Exactly 5 Multiple Choice Questions generated here by script.js -->
+          </form>
+
+          <!-- Quiz Controls -->
+          <div class="quiz-controls">
+            <button id="submitQuizBtn" class="btn btn-primary btn-md">
+              <span aria-hidden="true">✅</span> Submit Answers
+            </button>
+            <button id="tryAgainQuizBtn" class="btn btn-secondary btn-md hidden">
+              <span aria-hidden="true">🔄</span> Try Again
+            </button>
+            <button id="resetQuizBtn" class="btn btn-ghost btn-sm">
+              <span aria-hidden="true">↩️</span> Reset Selection
+            </button>
+          </div>
+
+          <!-- Past Quiz Scores Progress Bar -->
+          <div class="quiz-stats-footer">
+            <span id="quizAttemptsSummary" class="stats-text">Total Quiz Attempts: 0 | Average Score: 0%</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ----------------------------------------------------------- -->
+      <!-- SECTION 4: FLASHCARDS                                       -->
+      <!-- ----------------------------------------------------------- -->
+      <section id="flashcardsSection" class="card output-card" aria-label="Flashcards Section">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="badge badge-cyan">Flashcards</span>
+            <h3>Active Recall Flashcards</h3>
+          </div>
+          <div class="flashcard-mastery-badge">
+            <span id="masteryCountText">Mastered: 0 / 5</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <p class="flashcard-instruction">
+            <span aria-hidden="true">💡</span> Click the card or press <kbd>Space</kbd> / <kbd>Enter</kbd> to flip. Use arrow keys <kbd>←</kbd> and <kbd>→</kbd> to navigate.
+          </p>
+
+          <!-- 3D Flashcard Stage -->
+          <div class="flashcard-stage" id="flashcardStage">
+            <div 
+              id="activeFlashcard" 
+              class="flashcard" 
+              tabindex="0" 
+              role="button" 
+              aria-label="Flashcard. Click to flip." 
+              aria-expanded="false"
+            >
+              <!-- Front Face -->
+              <div class="flashcard-face flashcard-front">
+                <span class="card-face-tag">Question / Concept</span>
+                <div class="card-face-content">
+                  <p id="flashcardFrontText">Loading concept...</p>
+                </div>
+                <div class="flip-hint">
+                  <span aria-hidden="true">🔄</span> Click to reveal answer
+                </div>
+              </div>
+
+              <!-- Back Face -->
+              <div class="flashcard-face flashcard-back">
+                <span class="card-face-tag">Answer / Explanation</span>
+                <div class="card-face-content">
+                  <p id="flashcardBackText">Loading answer...</p>
+                </div>
+                <div class="flip-hint">
+                  <span aria-hidden="true">🔄</span> Click to flip back
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flashcard Navigation Bar -->
+          <div class="flashcard-navigation">
+            <button id="prevCardBtn" class="btn btn-secondary btn-icon" aria-label="Previous card">
+              <span aria-hidden="true">◀</span> Prev
+            </button>
+            <div class="card-indicator">
+              <span id="currentCardIndex">1</span> of <span id="totalCardsCount">5</span>
+            </div>
+            <button id="nextCardBtn" class="btn btn-secondary btn-icon" aria-label="Next card">
+              Next <span aria-hidden="true">▶</span>
+            </button>
+          </div>
+
+          <!-- Mastery Feedback Buttons -->
+          <div class="flashcard-actions">
+            <button id="markReviewBtn" class="btn btn-outline-danger btn-sm" title="Mark this card for further review">
+              <span aria-hidden="true">🔄</span> Review Again
+            </button>
+            <button id="markKnownBtn" class="btn btn-outline-success btn-sm" title="Mark this card as known">
+              <span aria-hidden="true">⭐</span> I Know This!
+            </button>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="progress-bar-container" title="Mastery progress">
+            <div id="flashcardProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- SECTION 5: STUDY HISTORY & SESSIONS                           -->
+    <!-- ------------------------------------------------------------- -->
+    <section id="historySection" class="card history-card" aria-label="Saved Study Sessions">
+      <div class="card-header">
+        <div class="card-title-group">
+          <span class="badge badge-neutral">Storage</span>
+          <h2>Study History & Past Sessions</h2>
+        </div>
+        
+        <!-- Clear All History Button -->
+        <button id="clearAllHistoryBtn" class="btn btn-ghost-danger btn-sm" title="Clear all saved history">
+          <span aria-hidden="true">🗑️</span> Clear All History
+        </button>
+      </div>
+
+      <div class="card-body">
+        
+        <!-- Search and Filter Bar -->
+        <div class="history-search-bar">
+          <div class="search-input-wrapper">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input 
+              type="text" 
+              id="historySearchInput" 
+              class="form-control" 
+              placeholder="Search past topics or keywords..."
+              aria-label="Filter history by topic"
+            >
+          </div>
+          <button id="regenerateCurrentBtn" class="btn btn-secondary btn-sm" title="Regenerate from current notes">
+            <span aria-hidden="true">✨</span> Re-run Current Notes
+          </button>
+        </div>
+
+        <!-- History Items Grid/List -->
+        <div id="historyListContainer" class="history-list" role="list">
+          <!-- Dynamically populated by script.js -->
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER                             -->
+  <!-- ================================================================= -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ================================================================= -->
+  <!-- APPLICATION FOOTER                                                -->
+  <!-- ================================================================= -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <p class="footer-brand"><strong>StudyMate AI</strong> &bull; College Project Demonstration</p>
+        <p class="footer-subtext">Engineered with 100% Vanilla HTML, CSS, and Modern JavaScript. Powered by Google Gemini (Gemini 2.5 Flash / 2.0 Flash) API.</p>
+      </div>
+      <div class="footer-right">
+        <span class="tech-tag">HTML5</span>
+        <span class="tech-tag">CSS3</span>
+        <span class="tech-tag">Vanilla JS</span>
+        <span class="tech-tag">REST API</span>
+        <span class="tech-tag">SpeechSynthesis</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="script.js"></script>
+</body>
+</html>
